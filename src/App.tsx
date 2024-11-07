@@ -110,7 +110,7 @@ export default function App() {
     setParts(parts.map((part, i) => 
       i === index ? { ...part, position: newPosition, rotation: newRotation } : part
     ));
-    // console.log("setting position", newPosition, index);
+    console.log("setting position", newPosition, index);
   };
 
   const handleScaleChange = (index: number, newScale: number) => {

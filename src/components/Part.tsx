@@ -15,6 +15,8 @@ export const Part: React.FC<PartProps> = forwardRef((props, ref) => {
   const lastPosition = useRef<[number, number, number]>(props.position);
   const lastRotation = useRef<[number, number, number]>(props.rotation);
   
+  let newPostition: [number, number, number] = [mesh.current?.position.x, mesh.current?.position.y, mesh.current?.position.z];
+
   
   useHelper(props.active ? mesh.current : undefined, BoxHelper, 'cyan');
 
@@ -55,27 +57,18 @@ export const Part: React.FC<PartProps> = forwardRef((props, ref) => {
           anchor={[0,0,0]}
           ref={pivotRef}
           matrix={matrix.current}
-          onDragStart={() => {
-            lastPosition.current = props.position;
-            lastRotation.current = props.rotation;
-            if (mesh.current) {
-              mesh.current.position.set(props.position[0], props.position[1], props.position[2]);
-            }
-            props.onPositionChange?.(props.id, props.position, props.rotation);
-            console.log('drag start', props.position);
-          }}
           onDrag={(matrix_) => {
             if (mesh.current) {
               // console.log('dragging', props.position);
               matrix.current.copy(matrix_);
-              const position = new THREE.Vector3(props.position[0], props.position[1], props.position[2]);
-              const rotation = new THREE.Quaternion(props.rotation[0], props.rotation[1], props.rotation[2], 1);
+              const position = new THREE.Vector3(mesh.current?.position.x, mesh.current?.position.y, mesh.current?.position.z);
+              const rotation = new THREE.Quaternion(mesh.current?.rotation.x, mesh.current?.rotation.y, mesh.current?.rotation.z, 1);
               const scale = new THREE.Vector3(1, props.dimensions.height, 1);
               
               matrix.current.decompose(position, rotation, scale);
               const euler = new THREE.Euler().setFromQuaternion(rotation);
                 
-              const newPosition: [number, number, number] = [position.x, position.y, position.z];
+              let newPosition = [position.x, position.y, position.z];
               const newRotation: [number, number, number] = [euler.x, euler.y, euler.z];
               // pivotMatrix.current.setPosition(newPosition[0], newPosition[1], newPosition[2]);
               lastPosition.current = newPosition;
@@ -84,21 +77,15 @@ export const Part: React.FC<PartProps> = forwardRef((props, ref) => {
               props.onPositionChange?.(props.id, newPosition, newRotation);
             }
           }}
-          onDragEnd={() => {
-            if (mesh.current) {
-              // pivotMatrix.current.setPosition(lastPosition.current[0], lastPosition.current[1], lastPosition.current[2]);
-              // mesh.current.position.set(props.position[0], props.position[1], props.position[2]);
-              props.onPositionChange?.(props.id, lastPosition.current, lastRotation.current);
-              console.log('drag end', props.position);
-            }
-          }}
+         
+
         > 
           <mesh 
             ref={mesh} 
             userData={{isFaceSelected: false}}
             scale={[1, props.dimensions.height, 1]}
-            position={props.position}
-            rotation={props.rotation}
+            position={mesh.position}
+            rotation={mesh.rotation}
             onClick={(e) => {
               e.stopPropagation();
               props.onClick?.();
