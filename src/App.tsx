@@ -10,6 +10,8 @@ import { DEFAULT_PART_DATA } from './types';
 import { Matrix4, Mesh } from 'three';
 import * as THREE from 'three';
 const DEG45 = Math.PI / 4;
+// Global Variables
+let partID: number = 0;
 
 interface GhostMeshProps {
   toolActive: string;
@@ -40,7 +42,6 @@ const GhostMesh: React.FC<GhostMeshProps> = ({ toolActive, position }) => {
   useFrame(() => {
     if (meshRef.current) {
       meshRef.current.position.set(...position);
-      console.log('invalidating');
       invalidate();
     }
   });
@@ -54,6 +55,7 @@ const GhostMesh: React.FC<GhostMeshProps> = ({ toolActive, position }) => {
 
 export default function App() {
 
+
   // Refs
   const cameraControlRef = useRef<CameraControls | null>(null);
   const partRef = createRef<Mesh>();
@@ -62,7 +64,7 @@ export default function App() {
 
   // State
   const [facePosition, setFacePosition] = useState<[number, number, number]>([0, 0, 0]);
-  const [parts, setParts] = useState<PartProps[]>([]);
+  const [parts, setParts] = useState<PartProps[] | null>(null);
   const [activePartIndex, setActivePartIndex] = useState<number>(0);
   const [toolActive, setToolActive] = useState<string>('');
   const [ghostPosition, setGhostPosition] = useState<[number, number, number]>([0, 0, 0]);
@@ -80,8 +82,14 @@ export default function App() {
     console.log('addPart', partType);
   };
 
+  const removePart = (index: number) => {
+    setParts(p => p.filter(part => part.id !== index));
+    console.log("removed ", {index});
+    console.log({parts});
+  };
+
   const placePart = (position: [number, number, number]) => {
-    const partCount = parts.length;
+    const partCount = ( parts ? parts.length : 0 );
     const defaultDimensions = partsConfig[toolActive as PartType].defaultDimensions;
     
     if (!defaultDimensions) {
@@ -89,15 +97,16 @@ export default function App() {
       return;
     }
     console.log('placing part', position);
-    setParts(prevParts => [...prevParts, {
+    setParts(prevParts => [ ...( prevParts || [] ), {
       type: toolActive,
       position: position,
       rotation: [0,0,0],
-      key: partCount,
-      id: partCount,
+      key: partID,
+      id: partID,
       dimensions: defaultDimensions,
       active: true,
     }]);
+    partID++;
     // setActivePartIndex(partCount);
     return;
   };
@@ -110,7 +119,7 @@ export default function App() {
     setParts(parts.map((part, i) => 
       i === index ? { ...part, position: newPosition, rotation: newRotation } : part
     ));
-    console.log("setting position", newPosition, index);
+   // console.log("setting position", newPosition, index);
   };
 
   const handleScaleChange = (index: number, newScale: number) => {
@@ -123,7 +132,7 @@ export default function App() {
   const handleFaceSelected = (index: number, faceIndex: number) => {
     console.log('Face selected for index', index, 'to', faceIndex);
     setFacePosition(parts[index].position);
-    setParts(parts.map((part, i) => 
+    setParts(parts?.map((part, i) => 
       i === index ? { ...part, faceSelected: faceIndex } : part
     ));
   };
@@ -143,7 +152,7 @@ export default function App() {
         <CameraControls ref={cameraControlRef} makeDefault/>
         <ambientLight intensity={0.5} />
         <directionalLight position={[5, 5, 5]} intensity={1} />
-        {parts.map((part, index) => (
+        {parts?.map((part, index) => (
           <Part 
             {...part}
             key={part.key}
@@ -179,10 +188,13 @@ export default function App() {
       </Canvas>
       <ControlPanel 
         onAddPart={addPart}
+        onRemovePart={removePart}
+        setActivePartIndex={setActivePartIndex}
         setToolActive={setToolActive}
         facePosition={facePosition}
         onRotateCamera={() => cameraControlRef.current?.rotate(DEG45, 0, true)}
         onResetCamera={() => cameraControlRef.current?.reset(true)}
+        parts={parts}
       />
     </>
   );

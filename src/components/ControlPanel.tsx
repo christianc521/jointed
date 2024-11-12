@@ -5,57 +5,54 @@ import { Button, Paper } from '@mui/material';
 import { CardActions } from '@mui/material';
 import { Typography } from '@mui/material';
 import { CardContent } from '@mui/material';
+import { PartProps } from '../types/index';
 
 interface ControlPanelProps {
   onAddPart: (partType: string, position: [number, number, number]) => void;
+  onRemovePart: (index: number) => void;
   onAddJoint: (position: [number, number, number]) => void;
   setToolActive: (toolActive: string) => void;
+  setActivePartIndex: (activePartIndex: number) => void;
   onRotateCamera: () => void;
   onResetCamera: () => void;
   facePosition: [number, number, number];
+  parts: {
+    type: string;
+  }[];
 }
-
-
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
   onAddPart,
+  onRemovePart,
+  setActivePartIndex,
   onAddJoint,
   setToolActive,
   onRotateCamera,
   onResetCamera,
   facePosition,
+  parts,
 }) => {
-
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
+  function handlePartClick( type ) {
+    console.log({type});
+  }
+
   const card = () => (
-    <React.Fragment>
-      <CardContent>
-        <Typography gutterBottom sx={{ color: 'text.secondary', fontSize: 14 }}>
-          Select a face
-        </Typography>
-        <Typography variant="h5" component="div">
-          face
-        </Typography>
-        <h1>
-          {facePosition[0]} {facePosition[1]} {facePosition[2]}
-        </h1>
-        <Typography sx={{ color: 'text.secondary', mb: 1.5 }}>adjective</Typography>
-        <Typography variant="body2">
-          well meaning and kindly.
-          <br />
-          {'"a benevolent smile"'}
-        </Typography>
-      </CardContent>
-      <CardActions>
-        <Button size="small" onClick={handleClose}>close</Button>
-        <Button size="small" onClick={() => onAddJoint(facePosition)}>Add Joint</Button>
-      </CardActions>
-    </React.Fragment>
+    parts?.map((part, index) => 
+    <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
+      <h2 key={index} onClick={ () => setActivePartIndex(index) } >
+        { part.type }
+      </h2>
+      <button onClick={() => onRemovePart(part.id)}>
+        Delete
+      </button>
+    </div>
+    ) 
   );
-  
+
   return (
     <div style={{ position: 'absolute', top: '0' }}>
       <button type="button" onClick={onRotateCamera}>
@@ -78,7 +75,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       <button type="button" onClick={handleOpen}>
         Select Face
       </button>
-      { open ? card() : null }
+      {card()}
     </div>
   );
 }; 

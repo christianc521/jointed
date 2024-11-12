@@ -59,8 +59,7 @@ export const Part: React.FC<PartProps> = forwardRef((props, ref) => {
           matrix={matrix.current}
           onDrag={(matrix_) => {
             if (mesh.current) {
-              // console.log('dragging', props.position);
-              matrix.current.copy(matrix_);
+              // TODO: call onPositionChange only on onDragEnd()
               const position = new THREE.Vector3(mesh.current?.position.x, mesh.current?.position.y, mesh.current?.position.z);
               const rotation = new THREE.Quaternion(mesh.current?.rotation.x, mesh.current?.rotation.y, mesh.current?.rotation.z, 1);
               const scale = new THREE.Vector3(1, props.dimensions.height, 1);
