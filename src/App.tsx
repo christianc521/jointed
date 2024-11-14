@@ -9,9 +9,9 @@ import { partsConfig, PartType } from './config/parts';
 import { DEFAULT_PART_DATA } from './types';
 import { Matrix4, Mesh } from 'three';
 import * as THREE from 'three';
+import  { v4 as uuidv4 } from 'uuid';
 const DEG45 = Math.PI / 4;
 // Global Variables
-let partID: number = 0;
 
 interface GhostMeshProps {
   toolActive: string;
@@ -55,6 +55,7 @@ const GhostMesh: React.FC<GhostMeshProps> = ({ toolActive, position }) => {
 
 export default function App() {
 
+  // Global Variables
 
   // Refs
   const cameraControlRef = useRef<CameraControls | null>(null);
@@ -65,49 +66,43 @@ export default function App() {
   // State
   const [facePosition, setFacePosition] = useState<[number, number, number]>([0, 0, 0]);
   const [parts, setParts] = useState<PartProps[] | null>(null);
-  const [activePartIndex, setActivePartIndex] = useState<number>(0);
+  const [activePartID, setActivePartID] = useState<string>('');
   const [toolActive, setToolActive] = useState<string>('');
   const [ghostPosition, setGhostPosition] = useState<[number, number, number]>([0, 0, 0]);
-
+  const [shouldSetActive, setShouldActive] = useState<boolean>(false);
   // Effects
   useEffect(() => {
-    console.log('Active part index updated:', activePartIndex);
-  }, [activePartIndex]);
+    console.log('Active part index updated:', activePartID);
+  }, [activePartID]);
 
-  
+  useEffect(() => {
+    invalidate();
+    console.log(parts);
+  }, [parts]);
+
+  useEffect(() => {
+    if (shouldSetActive) {
+      setActivePartID(parts[parts.length - 1].id);
+      setShouldActive(false);
+    }
+  }, [shouldSetActive]);
+
+    
 
   // Handlers
   const addPart = (partType: string) => {
     setToolActive(partType);
-    console.log('addPart', partType);
+    setActivePartID('');
   };
 
-  const removePart = (index: number) => {
-    setParts(p => p.filter(part => part.id !== index));
-    console.log("removed ", {index});
-    console.log({parts});
+  const removePart = (id: string) => {
+    setParts(p => p.filter(part => part.id !== id));
   };
 
   const placePart = (position: [number, number, number]) => {
     const partCount = ( parts ? parts.length : 0 );
-    const defaultDimensions = partsConfig[toolActive as PartType].defaultDimensions;
-    
-    if (!defaultDimensions) {
-      console.error(`No default dimensions found for part type: ${toolActive}`);
-      return;
-    }
     console.log('placing part', position);
-    setParts(prevParts => [ ...( prevParts || [] ), {
-      type: toolActive,
-      position: position,
-      rotation: [0,0,0],
-      key: partID,
-      id: partID,
-      dimensions: defaultDimensions,
-      active: true,
-    }]);
-    partID++;
-    // setActivePartIndex(partCount);
+    handlePlacePart(position);
     return;
   };
 
@@ -115,9 +110,9 @@ export default function App() {
     addPart('joint');
   }
 
-  const handlePositionChange = (index: number, newPosition: [number, number, number], newRotation: [number, number, number]) => {
+  const handlePositionChange = (id: string, newPosition: [number, number, number], newRotation: [number, number, number]) => {
     setParts(parts.map((part, i) => 
-      i === index ? { ...part, position: newPosition, rotation: newRotation } : part
+      parts[i].id === id ? { ...part, position: newPosition, rotation: newRotation } : part
     ));
    // console.log("setting position", newPosition, index);
   };
@@ -129,18 +124,39 @@ export default function App() {
     ));
   };
 
-  const handleFaceSelected = (index: number, faceIndex: number) => {
-    console.log('Face selected for index', index, 'to', faceIndex);
-    setFacePosition(parts[index].position);
-    setParts(parts?.map((part, i) => 
-      i === index ? { ...part, faceSelected: faceIndex } : part
-    ));
+  const handleFaceSelected = (selectedPart: PartProps[], faceIndex: number) => {
+    console.log('Face selected for prop', selectedPart, 'to', faceIndex);
+    console.log(selectedPart.position);
+    setFacePosition(selectedPart.postition);
   };
 
-  const handlePartClick = (index: number) => {
-    console.log('Part clicked', index);
-    console.log(parts[index]);
-    setActivePartIndex(index);
+  const handlePartClick = (id: string) => {
+    setActivePartID(id);
+  };
+
+  const handlePlacePart = (position: [number, number, number]) => {
+
+    const defaultDimensions = partsConfig[toolActive as PartType].defaultDimensions;
+    if (!defaultDimensions) {
+      console.error(`No default dimensions found for part type: ${toolActive}`);
+      return;
+    }
+
+    setParts(
+      prevParts => ([ ...( prevParts || [] ), {
+        type: toolActive,
+        position: position,
+        rotation: [0,0,0],
+        key: uuidv4(),
+        id: uuidv4(),
+        dimensions: defaultDimensions,
+        active: true,
+      }]),
+    );
+    setShouldActive(true);
+//    useEffect(() => {
+//      setActivePartID(parts[parts.length].id);
+//    }, [parts]);
   };
 
 
@@ -148,7 +164,7 @@ export default function App() {
   // Render
   return (
     <>
-      <Canvas camera={{ position: [0, 3, 3] }} onDoubleClick={() => setActivePartIndex(-1)} >
+      <Canvas camera={{ position: [0, 3, 3] }} onDoubleClick={() => setActivePartID('')} >
         <CameraControls ref={cameraControlRef} makeDefault/>
         <ambientLight intensity={0.5} />
         <directionalLight position={[5, 5, 5]} intensity={1} />
@@ -158,12 +174,12 @@ export default function App() {
             key={part.key}
             id={part.id}
             ref={partRef}
-            onFaceSelected={(faceIndex) => handleFaceSelected(index, faceIndex)}
+            onFaceSelected={(faceIndex) => handleFaceSelected(part, faceIndex)}
             position={part.position}
             rotation={part.rotation}
-            active={index === activePartIndex}
+            active={part.id === activePartID}
             onPositionChange={(id, newPosition, newRotation) => handlePositionChange(id, newPosition, newRotation)}
-            onClick={() => {handlePartClick(index);}}
+            onClick={() => {handlePartClick(part.id);}}
           />
         ))}
         {toolActive && (
@@ -172,7 +188,6 @@ export default function App() {
               onClick={(e) => {
                 e.stopPropagation();
                 placePart(ghostPosition ? ghostPosition : [0,0,0]);
-                console.log(parts);
                 setToolActive('');
               }}
               onPointerMove={(e) => {
@@ -189,9 +204,12 @@ export default function App() {
       <ControlPanel 
         onAddPart={addPart}
         onRemovePart={removePart}
-        setActivePartIndex={setActivePartIndex}
+        setActivePartID={setActivePartID}
         setToolActive={setToolActive}
-        facePosition={facePosition}
+        // TODO: Update ControlPanel to accept onFaceSelected
+        // when joint UI is clicked, set facePosition to [0,0,0]
+        // when joint UI 'confirm' is clicked, set facePosition to part position
+        onFaceSelected={(faceIndex) => handleFaceSelected(part, faceIndex)}
         onRotateCamera={() => cameraControlRef.current?.rotate(DEG45, 0, true)}
         onResetCamera={() => cameraControlRef.current?.reset(true)}
         parts={parts}

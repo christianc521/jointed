@@ -59,7 +59,8 @@ export const Part: React.FC<PartProps> = forwardRef((props, ref) => {
           matrix={matrix.current}
           onDrag={(matrix_) => {
             if (mesh.current) {
-              // TODO: call onPositionChange only on onDragEnd()
+              // console.log('dragging', props.position);
+              matrix.current.copy(matrix_);
               const position = new THREE.Vector3(mesh.current?.position.x, mesh.current?.position.y, mesh.current?.position.z);
               const rotation = new THREE.Quaternion(mesh.current?.rotation.x, mesh.current?.rotation.y, mesh.current?.rotation.z, 1);
               const scale = new THREE.Vector3(1, props.dimensions.height, 1);
@@ -72,7 +73,7 @@ export const Part: React.FC<PartProps> = forwardRef((props, ref) => {
               // pivotMatrix.current.setPosition(newPosition[0], newPosition[1], newPosition[2]);
               lastPosition.current = newPosition;
               lastRotation.current = newRotation;
-              // console.log("new position", newPosition, "new rotation", newRotation);
+              console.log("new position", newPosition, "new rotation", newRotation);
               props.onPositionChange?.(props.id, newPosition, newRotation);
             }
           }}
@@ -81,7 +82,6 @@ export const Part: React.FC<PartProps> = forwardRef((props, ref) => {
         > 
           <mesh 
             ref={mesh} 
-            userData={{isFaceSelected: false}}
             scale={[1, props.dimensions.height, 1]}
             position={mesh.position}
             rotation={mesh.rotation}

@@ -12,7 +12,7 @@ interface ControlPanelProps {
   onRemovePart: (index: number) => void;
   onAddJoint: (position: [number, number, number]) => void;
   setToolActive: (toolActive: string) => void;
-  setActivePartIndex: (activePartIndex: number) => void;
+  setActivePartID: (activePartID: number) => void;
   onRotateCamera: () => void;
   onResetCamera: () => void;
   facePosition: [number, number, number];
@@ -24,7 +24,7 @@ interface ControlPanelProps {
 export const ControlPanel: React.FC<ControlPanelProps> = ({
   onAddPart,
   onRemovePart,
-  setActivePartIndex,
+  setActivePartID,
   onAddJoint,
   setToolActive,
   onRotateCamera,
@@ -33,7 +33,11 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   parts,
 }) => {
   const [open, setOpen] = useState(false);
-  const handleOpen = () => setOpen(true);
+  const handleOpen = () => { 
+    console.log(facePosition);
+    setActivePartID('');
+    setOpen(true); 
+  };
   const handleClose = () => setOpen(false);
 
   function handlePartClick( type ) {
@@ -43,7 +47,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   const card = () => (
     parts?.map((part, index) => 
     <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
-      <h2 key={index} onClick={ () => setActivePartIndex(index) } >
+      <h2 key={index} onClick={ () => setActivePartID(part.id) } >
         { part.type }
       </h2>
       <button onClick={() => onRemovePart(part.id)}>
@@ -51,6 +55,12 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       </button>
     </div>
     ) 
+  );
+
+  const jointCreateUI = () => (
+    <div>
+      <h3> {facePosition} </h3>
+    </div>
   );
 
   return (
@@ -73,7 +83,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </button>
       ))}
       <button type="button" onClick={handleOpen}>
-        Select Face
+        {facePosition}
       </button>
       {card()}
     </div>

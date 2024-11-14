@@ -15,8 +15,8 @@ export const DEFAULT_PART_DATA: PartData = {
 }
 
 export interface PartProps {
-  id: number;
-  key: number;
+  id: string;
+  key: string;
   type: string;
   position: [number, number, number];
   rotation: [number, number, number];
