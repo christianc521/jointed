@@ -64,7 +64,7 @@ export default function App() {
   
 
   // State
-  const [facePosition, setFacePosition] = useState<[number, number, number]>([0, 0, 0]);
+  const [facePosition, setFacePosition] = useState<number[]>([0, 0, 0]);
   const [parts, setParts] = useState<PartProps[] | null>(null);
   const [activePartID, setActivePartID] = useState<string>('');
   const [toolActive, setToolActive] = useState<string>('');
@@ -76,9 +76,9 @@ export default function App() {
   }, [activePartID]);
 
   useEffect(() => {
+    console.log('useeffect called for facePosition', facePosition);
     invalidate();
-    console.log(parts);
-  }, [parts]);
+  }, [facePosition]);
 
   useEffect(() => {
     if (shouldSetActive) {
@@ -127,7 +127,7 @@ export default function App() {
   const handleFaceSelected = (selectedPart: PartProps[], faceIndex: number) => {
     console.log('Face selected for prop', selectedPart, 'to', faceIndex);
     console.log(selectedPart.position);
-    setFacePosition(selectedPart.postition);
+    setFacePosition(selectedPart.position);
   };
 
   const handlePartClick = (id: string) => {
@@ -206,10 +206,10 @@ export default function App() {
         onRemovePart={removePart}
         setActivePartID={setActivePartID}
         setToolActive={setToolActive}
+        facePosition={facePosition ? facePosition : [0,0,0]}
         // TODO: Update ControlPanel to accept onFaceSelected
         // when joint UI is clicked, set facePosition to [0,0,0]
         // when joint UI 'confirm' is clicked, set facePosition to part position
-        onFaceSelected={(faceIndex) => handleFaceSelected(part, faceIndex)}
         onRotateCamera={() => cameraControlRef.current?.rotate(DEG45, 0, true)}
         onResetCamera={() => cameraControlRef.current?.reset(true)}
         parts={parts}

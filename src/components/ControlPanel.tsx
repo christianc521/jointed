@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { PART_TYPES } from '../config/parts';
 import Dialog from '@mui/material/Dialog';
 import { Button, Paper } from '@mui/material';
@@ -32,13 +32,18 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   facePosition,
   parts,
 }) => {
+  let newFacePosition:number[] = [0,0,0];
+
   const [open, setOpen] = useState(false);
   const handleOpen = () => { 
-    console.log(facePosition);
     setActivePartID('');
-    setOpen(true); 
+    setOpen(!open); 
   };
-  const handleClose = () => setOpen(false);
+
+  //useEffect(() => { 
+  //  newFacePosition = facePosition.facePosition; 
+  //  console.log(newFacePosition);
+  //}, [facePosition.facePosition]);
 
   function handlePartClick( type ) {
     console.log({type});
@@ -57,9 +62,10 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     ) 
   );
 
-  const jointCreateUI = () => (
+  const jointCreateUI = (facePosition) => (
     <div>
-      <h3> {facePosition} </h3>
+      <h3> {facePosition ? facePosition : [0,0,0]} </h3>
+      <h3> test {console.log(facePosition)}</h3>
     </div>
   );
 
@@ -83,9 +89,10 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </button>
       ))}
       <button type="button" onClick={handleOpen}>
-        {facePosition}
+        Dowel Joint
       </button>
       {card()}
+      {open && jointCreateUI(facePosition)}
     </div>
   );
 }; 

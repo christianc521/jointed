@@ -67,18 +67,14 @@ export const Part: React.FC<PartProps> = forwardRef((props, ref) => {
               
               matrix.current.decompose(position, rotation, scale);
               const euler = new THREE.Euler().setFromQuaternion(rotation);
-                
               let newPosition = [position.x, position.y, position.z];
               const newRotation: [number, number, number] = [euler.x, euler.y, euler.z];
               // pivotMatrix.current.setPosition(newPosition[0], newPosition[1], newPosition[2]);
               lastPosition.current = newPosition;
               lastRotation.current = newRotation;
-              console.log("new position", newPosition, "new rotation", newRotation);
               props.onPositionChange?.(props.id, newPosition, newRotation);
             }
           }}
-         
-
         > 
           <mesh 
             ref={mesh} 
@@ -88,7 +84,6 @@ export const Part: React.FC<PartProps> = forwardRef((props, ref) => {
             onClick={(e) => {
               e.stopPropagation();
               props.onClick?.();
-              console.log(mesh.current?.position, props.position);
               if (partsConfig[props.type as PartType].selectableFaceIndexes.includes(e.faceIndex || 0)) {
                 props.onFaceSelected?.(e.faceIndex || 0);
               }
