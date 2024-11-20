@@ -1,5 +1,3 @@
-import { Matrix4 } from 'three';
-
 export interface PartData {
   type: string;
   position: [number, number, number];
@@ -9,8 +7,8 @@ export interface PartData {
 
 export const DEFAULT_PART_DATA: PartData = {
   type: '',
-  position: [0,4,0],
-  rotation: [0,0,0],
+  position: [0, 4, 0],
+  rotation: [0, 0, 0],
   key: 0
 }
 
@@ -28,7 +26,7 @@ export interface PartProps {
   active?: boolean;
   selected?: boolean;
   onFaceSelected?: (faceIndex: number) => void;
-  onPositionChange?: (id: number, newPosition: [number, number, number], newRotation: [number, number, number]) => void;
-  onScaleChange?: (scale: number) => void;
+  onPositionChange?: (id: string, newPosition: number[], newRotation: number[]) => void;
+  onScaleChange?: (id: string, newDimension: number[]) => void;
   onClick?: () => void;
 } 

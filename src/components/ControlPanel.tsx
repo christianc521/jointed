@@ -1,82 +1,41 @@
 import React, { useEffect, useState } from 'react';
+import { useBoundStore } from '../stores/useBoundStore.ts';
 import { PART_TYPES } from '../config/parts';
-import Dialog from '@mui/material/Dialog';
-import { Button, Paper } from '@mui/material';
-import { CardActions } from '@mui/material';
-import { Typography } from '@mui/material';
-import { CardContent } from '@mui/material';
-import { PartProps } from '../types/index';
-
+import { JointToolMenu } from './JointToolMenu';
+import { LeftPanel } from './UIComponents/LeftPanel';
 interface ControlPanelProps {
-  onAddPart: (partType: string, position: [number, number, number]) => void;
-  onRemovePart: (index: number) => void;
-  onAddJoint: (position: [number, number, number]) => void;
-  setToolActive: (toolActive: string) => void;
-  setActivePartID: (activePartID: number) => void;
-  onRotateCamera: () => void;
-  onResetCamera: () => void;
+  onAddPart: (partType: string) => void;
+  setFacePosition: (position: number[]) => [number, number, number];
   facePosition: [number, number, number];
-  parts: {
-    type: string;
-  }[];
 }
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
   onAddPart,
-  onRemovePart,
-  setActivePartID,
-  onAddJoint,
-  setToolActive,
-  onRotateCamera,
-  onResetCamera,
+  setFacePosition,
   facePosition,
-  parts,
 }) => {
-  let newFacePosition:number[] = [0,0,0];
 
+  const setActiveTool = useBoundStore((state) => state.setActiveTool);
+  const setActivePartID = useBoundStore((state) => state.setActivePartID);
+
+  // Handles the opening and closing of the joint tool menu
   const [open, setOpen] = useState(false);
-  const handleOpen = () => { 
-    setActivePartID('');
-    setOpen(!open); 
+  const handleOpen = () => {
+    setOpen(!open);
   };
 
-  //useEffect(() => { 
-  //  newFacePosition = facePosition.facePosition; 
-  //  console.log(newFacePosition);
-  //}, [facePosition.facePosition]);
+  // Resets editor to empty selection and tool
+  // If any parts were selected, deselect
+  // Sets facePosition to [0,0,0] (should probably make nil), use this to handle impossible set joint with no selection
+  useEffect(() => {
+    setActivePartID('');
+    setActiveTool(open ? 'joint-panel' : '');
+    setFacePosition([null, null, null]);
+  }, [open]);
 
-  function handlePartClick( type ) {
-    console.log({type});
-  }
-
-  const card = () => (
-    parts?.map((part, index) => 
-    <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
-      <h2 key={index} onClick={ () => setActivePartID(part.id) } >
-        { part.type }
-      </h2>
-      <button onClick={() => onRemovePart(part.id)}>
-        Delete
-      </button>
-    </div>
-    ) 
-  );
-
-  const jointCreateUI = (facePosition) => (
-    <div>
-      <h3> {facePosition ? facePosition : [0,0,0]} </h3>
-      <h3> test {console.log(facePosition)}</h3>
-    </div>
-  );
 
   return (
     <div style={{ position: 'absolute', top: '0' }}>
-      <button type="button" onClick={onRotateCamera}>
-        Rotate Theta 45deg
-      </button>
-      <button type="button" onClick={onResetCamera}>
-        Reset Camera
-      </button>
       {Object.values(PART_TYPES).map(partType => (
         <button
           key={partType}
@@ -91,10 +50,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       <button type="button" onClick={handleOpen}>
         Dowel Joint
       </button>
-      {card()}
-      {open && jointCreateUI(facePosition)}
+      <LeftPanel />
+      {open && <JointToolMenu />}
     </div>
   );
-}; 
-
-
+};
