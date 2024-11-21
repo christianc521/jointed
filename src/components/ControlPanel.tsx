@@ -5,18 +5,15 @@ import { JointToolMenu } from './JointToolMenu';
 import { LeftPanel } from './UIComponents/LeftPanel';
 interface ControlPanelProps {
   onAddPart: (partType: string) => void;
-  setFacePosition: (position: number[]) => [number, number, number];
-  facePosition: [number, number, number];
 }
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
   onAddPart,
-  setFacePosition,
-  facePosition,
 }) => {
 
   const setActiveTool = useBoundStore((state) => state.setActiveTool);
   const setActivePartID = useBoundStore((state) => state.setActivePartID);
+  const setSelectedFacePosition = useBoundStore((state) => state.setSelectedFacePosition);
 
   // Handles the opening and closing of the joint tool menu
   const [open, setOpen] = useState(false);
@@ -30,7 +27,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   useEffect(() => {
     setActivePartID('');
     setActiveTool(open ? 'joint-panel' : '');
-    setFacePosition([null, null, null]);
+    setSelectedFacePosition([undefined, undefined, undefined]);
   }, [open]);
 
 

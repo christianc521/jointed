@@ -1,16 +1,11 @@
-import React, { useRef, useState, useEffect, createRef } from 'react';
+import { useState, useEffect, createRef } from 'react';
 import { useBoundStore } from './stores/useBoundStore.ts';
 import { GhostMesh } from './components/GhostMesh';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { CameraControls, Grid, OrthographicCamera, Plane } from '@react-three/drei';
+import { Canvas } from '@react-three/fiber';
+import { CameraControls, Grid, Plane } from '@react-three/drei';
 import { Part } from './components/Part';
 import { ControlPanel } from './components/ControlPanel';
-import type { PartProps } from './types';
-import { partsConfig, PartType } from './config/parts';
 import { Mesh } from 'three';
-import * as THREE from 'three';
-import { v4 as uuidv4 } from 'uuid';
-const DEG45 = Math.PI / 4;
 
 export default function App() {
 
@@ -20,20 +15,15 @@ export default function App() {
   // State
   const parts = useBoundStore((state) => state.parts);
   const placePart = useBoundStore((state) => state.placePart);
-  const positionChange = useBoundStore((state) => state.positionChange);
   const activePartID = useBoundStore((state) => state.activePartID);
   const setActivePartID = useBoundStore((state) => state.setActivePartID);
   const activeTool = useBoundStore((state) => state.activeTool);
-  const [facePosition, setFacePosition] = useState<number[]>([0, 0, 0]);
-
-  //const [parts, setParts] = useState<PartProps[] | null>(null);
-  const [toolActive, setToolActive] = useState<string>('');
+  const setActiveTool = useBoundStore((state) => state.setActiveTool);
+  // TODO: replace these states with BoundStore
   const [ghostPosition, setGhostPosition] = useState<[number, number, number]>([0, 0, 0]);
   const [shouldSetActive, setShouldActive] = useState<boolean>(false);
 
   // Effects
-
-
   useEffect(() => {
     if (shouldSetActive) {
       setActivePartID(parts[parts.length].id);
@@ -43,50 +33,8 @@ export default function App() {
 
   // Handlers
   const addPart = (partType: string) => {
-    setToolActive(partType);
+    setActiveTool(partType);
     setActivePartID('');
-  };
-
-  const removePart = (id: string) => {
-    setParts(p => p.filter(part => part.id !== id));
-  };
-
-  const addJoint = (position: [number, number, number]) => {
-    setToolActive('joint');
-    handlePlacePart(position);
-  }
-
-  const handlePositionChange = (id: string, newPosition: [number, number, number], newRotation: [number, number, number]) => {
-    // console.log("setting position", newPosition, index);
-    positionChange(id, newPosition, newRotation);
-  };
-
-  const handleScaleChange = (id: string, newScale: number) => {
-    console.log('Scale changed for index', id, 'to', newScale);
-    setParts(parts.map((part, i) =>
-      parts[i].id === id ? { ...part, dimensions: { ...part.dimensions, height: newScale } } : part
-    ));
-  };
-
-  const handleFaceSelected = (selectedPart: PartProps[], faceIndex: number) => {
-    console.log('Face selected for prop', selectedPart, 'to', faceIndex);
-    console.log(selectedPart.position);
-    setFacePosition(selectedPart.position);
-  };
-
-  const handlePartClick = (id: string) => {
-    setActivePartID(id);
-  };
-
-  const handlePlacePart = (position: [number, number, number]) => {
-    const defaultDimensions = partsConfig[toolActive as PartType].defaultDimensions;
-    if (!defaultDimensions) {
-      console.error(`No default dimensions found for part type: ${toolActive}`);
-      return;
-    }
-
-    placePart(activeTool, position);
-    setShouldActive(true);
   };
 
   // Render
@@ -100,22 +48,19 @@ export default function App() {
         <ambientLight intensity={0.5} />
         <gridHelper />
         <directionalLight position={[5, 5, 5]} intensity={1} />
-        {parts?.map((part, index) => (
+        {parts?.map((part) => (
           <Part
             {...part}
             key={part.key}
             id={part.id}
             ref={partRef}
-            onFaceSelected={(faceIndex) => handleFaceSelected(part, faceIndex)}
             position={part.position}
             rotation={part.rotation}
             active={part.id === activePartID}
-            onPositionChange={(id, newPosition, newRotation) => handlePositionChange(id, newPosition, newRotation)}
-            onScaleChange={(id, newScale) => handleScaleChange(id, newScale)}
-            onClick={() => { (toolActive !== 'joint-panel') && (handlePartClick(part.id)); }}
+            onClick={() => { (activeTool !== 'joint-panel') && (setActivePartID(part.id)); }}
           />
         ))}
-        {(toolActive && toolActive !== 'joint-panel') && (
+        {(activeTool && activeTool !== 'joint-panel') && (
           <>
             <Grid />
             <Plane
@@ -125,22 +70,20 @@ export default function App() {
               position={[0, 0, 0]}
               onClick={(e) => {
                 e.stopPropagation();
-                placePart(toolActive, [e.point.x, e.point.y, e.point.z]);
-                setToolActive('');
+                placePart(activeTool, [e.point.x, e.point.y, e.point.z]);
+                setActiveTool('');
               }}
               onPointerMove={(e) => {
                 e.stopPropagation();
                 setGhostPosition([e.point.x, e.point.y, e.point.z]);
               }}
             />
-            <GhostMesh toolActive={toolActive} position={ghostPosition} />
+            <GhostMesh toolActive={activeTool} position={ghostPosition} />
           </>
         )}
       </Canvas>
       <ControlPanel
         onAddPart={(partType: string) => addPart(partType)}
-        setFacePosition={(position) => setFacePosition(position)}
-        facePosition={facePosition ? facePosition : [0, 0, 0]}
       />
     </>
   );

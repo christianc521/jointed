@@ -4,15 +4,16 @@ import { Matrix4, Mesh } from 'three';
 import * as THREE from 'three';
 import { partsConfig, PartType } from '../config/parts';
 import type { PartProps } from '../types/index';
+import { useBoundStore } from '../stores/useBoundStore';
 
-
-
-export const Part: React.FC<PartProps> = forwardRef((props, ref) => {
+export const Part = forwardRef<Mesh, PartProps>((props, ref) => {
   const mesh = ref as React.RefObject<Mesh>;
   const matrix = useRef(new Matrix4());
   matrix.current.setPosition(props.position[0], props.position[1], props.position[2]);
   const lastPosition = useRef<number[]>(props.position);
   const lastRotation = useRef<number[]>(props.rotation);
+  const setSelectedFacePosition = useBoundStore((state) => state.setSelectedFacePosition);
+  const positionChange = useBoundStore((state) => state.positionChange);
 
 
   return (
@@ -24,7 +25,6 @@ export const Part: React.FC<PartProps> = forwardRef((props, ref) => {
           matrix={matrix.current}
           onDragEnd={() => {
             if (mesh.current) {
-              // console.log('dragging', props.position);
               const position = new THREE.Vector3(mesh.current?.position.x, mesh.current?.position.y, mesh.current?.position.z);
               const rotation = new THREE.Quaternion(mesh.current?.rotation.x, mesh.current?.rotation.y, mesh.current?.rotation.z, 1);
               const scale = new THREE.Vector3(1, props.dimensions.height, 1);
@@ -35,7 +35,7 @@ export const Part: React.FC<PartProps> = forwardRef((props, ref) => {
               const newRotation: number[] = [euler.x, euler.y, euler.z];
               lastPosition.current = newPosition;
               lastRotation.current = newRotation;
-              props.onPositionChange?.(props.id, newPosition, newRotation);
+              positionChange(props.id, newPosition, newRotation);
             }
           }}
 
@@ -47,7 +47,7 @@ export const Part: React.FC<PartProps> = forwardRef((props, ref) => {
               e.stopPropagation();
               props.onClick?.();
               if (partsConfig[props.type as PartType].selectableFaceIndexes.includes(e.faceIndex || 0)) {
-                props.onFaceSelected?.(e.faceIndex || 0);
+                setSelectedFacePosition(props.position);
               }
             }}
           >
@@ -71,7 +71,7 @@ export const Part: React.FC<PartProps> = forwardRef((props, ref) => {
             e.stopPropagation();
             props.onClick?.();
             if (partsConfig[props.type as PartType].selectableFaceIndexes.includes(e.faceIndex || 0)) {
-              props.onFaceSelected?.(e.faceIndex || 0);
+              setSelectedFacePosition(props.position);
             }
           }}
         >
