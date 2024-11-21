@@ -1,18 +1,18 @@
-import { create, StateCreator, useStore } from "zustand";
+import { StateCreator } from "zustand";
 import { partsConfig, PartType } from '../config/parts';
 import { PartProps } from "../types";
 import { v4 as uuidv4 } from 'uuid';
 
 export interface PartsSlice {
 	parts: PartProps[];
-	placePart: (tool: string, position: number[]) => void;
+	placePart: (tool: string, position: (number | undefined)[]) => void;
 	removePart: (id: string) => void;
 	positionChange: (id: string, position: number[], rotation: number[]) => void;
 }
 
 export const createPartsSlice: StateCreator<PartsSlice> = (set) => ({
 	parts: [],
-	placePart: (tool: string, position: number[]) => {
+	placePart: (tool: string, position: (number | undefined)[]) => {
 		set((state) => ({
 			parts: [
 				...state.parts,
