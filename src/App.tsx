@@ -6,6 +6,7 @@ import { CameraControls, Grid, Plane } from '@react-three/drei';
 import { Part } from './components/Part';
 import { ControlPanel } from './components/ControlPanel';
 import { Mesh } from 'three';
+import { DowelEndJoint } from './components/customThree/DowelEndJoint.tsx';
 
 export default function App() {
 
@@ -63,21 +64,23 @@ export default function App() {
         {(activeTool && activeTool !== 'joint-panel') && (
           <>
             <Grid />
-            <Plane
-              args={[10, 10]}
-              visible={false}
-              rotation={[-Math.PI / 2, 0, 0]}
-              position={[0, 0, 0]}
-              onClick={(e) => {
-                e.stopPropagation();
-                placePart(activeTool, [e.point.x, e.point.y, e.point.z]);
-                setActiveTool('');
-              }}
-              onPointerMove={(e) => {
-                e.stopPropagation();
-                setGhostPosition([e.point.x, e.point.y, e.point.z]);
-              }}
-            />
+            {activeTool == 'connection' ?
+              <Plane
+                args={[10, 10]}
+                visible={false}
+                rotation={[-Math.PI / 2, 0, 0]}
+                position={[0, 0, 0]}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  placePart(activeTool, [e.point.x, e.point.y, e.point.z]);
+                  setActiveTool('');
+                }}
+                onPointerMove={(e) => {
+                  e.stopPropagation();
+                  setGhostPosition([e.point.x, e.point.y, e.point.z]);
+                }}
+              /> : <DowelEndJoint setGhostPosition={(position: [number, number, number]) => (setGhostPosition(position))} />
+            }
             <GhostMesh toolActive={activeTool} position={ghostPosition} />
           </>
         )}

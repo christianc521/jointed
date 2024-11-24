@@ -3,6 +3,7 @@ import { useBoundStore } from '../stores/useBoundStore.ts';
 import { PART_TYPES } from '../config/parts';
 import { JointToolMenu } from './JointToolMenu';
 import { LeftPanel } from './UIComponents/LeftPanel';
+import styles from "./toolbutton.module.css";
 interface ControlPanelProps {
   onAddPart: (partType: string) => void;
 }
@@ -32,23 +33,28 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
 
   return (
-    <div style={{ position: 'absolute', top: '0' }}>
-      {Object.values(PART_TYPES).map(partType => (
-        <button
-          key={partType}
-          type="button"
-          onClick={() => {
-            onAddPart(partType);
-          }}
-        >
-          Add {partType}
+    <div>
+      <div style={{ position: 'absolute', top: '0' }} className={styles.toolbar} >
+        {Object.values(PART_TYPES).map(partType => (
+          <button
+            key={partType}
+            type="button"
+            className={styles.toolButton}
+            onClick={() => {
+              onAddPart(partType);
+            }}
+          >
+            <div className={styles.buttonCircle}>
+              o
+            </div>
+          </button>
+        ))}
+        <button type="button" onClick={handleOpen}>
+          Dowel Joint
         </button>
-      ))}
-      <button type="button" onClick={handleOpen}>
-        Dowel Joint
-      </button>
+      </div>
       <LeftPanel />
-      {open && <JointToolMenu />}
+      {open && <JointToolMenu handleOpen={() => handleOpen()} />}
     </div>
   );
 };

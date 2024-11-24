@@ -1,10 +1,13 @@
 import React, { useRef, forwardRef } from 'react';
+import { Face } from 'three/addons/math/ConvexHull.js';
 import { PivotControls } from '@react-three/drei';
 import { Matrix4, Mesh } from 'three';
 import * as THREE from 'three';
 import { partsConfig, PartType } from '../config/parts';
 import type { PartProps } from '../types/index';
 import { useBoundStore } from '../stores/useBoundStore';
+import Geometries from 'three/src/renderers/common/Geometries.js';
+import { getTriangles } from './helpers/GetFaceNormal';
 
 export const Part = forwardRef<Mesh, PartProps>((props, ref) => {
   const mesh = ref as React.RefObject<Mesh>;
@@ -47,8 +50,12 @@ export const Part = forwardRef<Mesh, PartProps>((props, ref) => {
               e.stopPropagation();
               props.onClick?.();
               if (partsConfig[props.type as PartType].selectableFaceIndexes.includes(e.faceIndex || 0)) {
-                setSelectedFacePosition(props.position);
+                const positionVector = new THREE.Vector3;
+                const pointerVector = new THREE.Vector3;
+                pointerVector.fromArray(e.point[0], e.point[1], e.point[2]);
+                setSelectedFacePosition(pointerVector.add(positionVector.fromArray(props.position)));
               }
+              console.log(getTriangles(mesh.current, e.faceIndex || 0));
             }}
           >
             <primitive object={partsConfig[props.type as PartType].shape.clone()} attach="geometry" />
@@ -56,7 +63,6 @@ export const Part = forwardRef<Mesh, PartProps>((props, ref) => {
               <meshStandardMaterial
                 key={index}
                 {...material}
-                wireframe={true}
               />
             ))}
           </mesh>
@@ -79,12 +85,7 @@ export const Part = forwardRef<Mesh, PartProps>((props, ref) => {
             object={partsConfig[props.type as PartType].shape.clone()}
             attach="geometry"
           />
-          {partsConfig[props.type as PartType].material.map((material, index) => (
-            <meshStandardMaterial
-              key={index}
-              {...material}
-            />
-          ))}
+          <meshMatcapMaterial />
         </mesh>
       )}
     </>

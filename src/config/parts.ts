@@ -1,9 +1,9 @@
-import { BoxGeometry, CylinderGeometry, SphereGeometry, MeshStandardMaterial } from "three";
+import { BoxGeometry, CylinderGeometry, SphereGeometry, MeshStandardMaterial, MeshMatcapMaterial } from "three";
 
 export interface PartConfig {
   shape: any;
   color: number;
-  material: MeshStandardMaterial[];
+  material: MeshStandardMaterial[] | MeshMatcapMaterial[];
   selectableFaceIndexes: number[];
   defaultDimensions?: {
     width: number;
@@ -57,10 +57,11 @@ export const partsConfig: Record<PartType, PartConfig> = {
     }
   },
   [PART_TYPES.JOINT]: {
-    shape: new SphereGeometry(.25, 12, 12).translate(0, 0.5, 0),
+    shape: new SphereGeometry(1, 10, 6).translate(0, 0.5, 0),
     material: [new MeshStandardMaterial({
       color: 0x0000ff,
-      wireframe: false
+      wireframe: false,
+      flatShading: true
     }), new MeshStandardMaterial({
       color: 0xff0000,
       wireframe: false
@@ -69,7 +70,7 @@ export const partsConfig: Record<PartType, PartConfig> = {
     color: 0x0000ff,
     defaultDimensions: {
       width: 0.3,
-      height: 1,
+      height: 0.3,
       depth: 0.3
     }
   }
